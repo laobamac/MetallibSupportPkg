@@ -1,8 +1,6 @@
 name: CI - Patch latest Sequoia metallib's
 
 on:
-  schedule:
-  - cron: "0 */3 * * *"
   push:
     branches:
       - main
