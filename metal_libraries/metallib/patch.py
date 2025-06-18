@@ -67,7 +67,7 @@ class MetallibPatch:
         """
         output = Path(input).with_suffix(".air")
 
-        result = subprocess.run(["/usr/bin/xcrun", "metal", "-c", "-mmacos-version-min=14.0", input, "-o", output], capture_output=True, text=True)
+        result = subprocess.run(["/usr/bin/xcrun", "metal", "-c", "-std=ios-metal2.3", "-mmacos-version-min=14.0", input, "-o", output], capture_output=True, text=True)
         if result.returncode != 0:
             log(result)
             raise Exception(f"Failed to recompile {input}")
@@ -202,6 +202,9 @@ class MetallibPatch:
                 return line.replace("i32 7", "i32 6")
 
             if r'!{!"Metal", i32 3, i32 2, i32 0}' in line:
+                return line.replace("i32 2", "i32 1")
+               
+            if r'!{!"Metal", i32 4, i32 2, i32 0}' in line:
                 return line.replace("i32 2", "i32 1")
 
             if r'@__air_sampler_state' in line and r'[2 x i64]' in line:
