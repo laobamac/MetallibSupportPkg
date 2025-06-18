@@ -194,7 +194,7 @@ class MetallibPatch:
         """
         def patch_line(line: str) -> str:
             if r'!{i32 2, i32 8, i32 0}' in line:
-                return line.replace("i32 7", "i32 6")
+                return line.replace("i32 8", "i32 6")
 
             if r'!{!"Metal", i32 3, i32 2, i32 0}' in line:
                 return line.replace("i32 2", "i32 1")
