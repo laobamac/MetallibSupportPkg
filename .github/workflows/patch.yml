@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: python3 -m pip install -r requirements.txt
 
-      - name: Download latest Sequoia IPSW
+      - name: Download latest IPSW
         run: echo "IPSW_FILE=$(aria2c -x 16 https://updates.cdn-apple.com/2025SummerSeed/fullrestores/082-55592/95F6DA16-4116-491E-B332-7165C051E1C5/UniversalMac_26.0_25A5279m_Restore.ipsw)" >> $GITHUB_OUTPUT
         id: download
 
