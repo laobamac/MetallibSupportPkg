@@ -193,7 +193,7 @@ class MetallibPatch:
         Patch AIR versioning to 2.6
         """
         def patch_line(line: str) -> str:
-            if r'!{i32 2, i32 7, i32 0}' in line:
+            if r'!{i32 2, i32 8, i32 0}' in line:
                 return line.replace("i32 7", "i32 6")
 
             if r'!{!"Metal", i32 3, i32 2, i32 0}' in line:
