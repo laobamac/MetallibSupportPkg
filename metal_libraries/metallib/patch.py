@@ -193,8 +193,9 @@ class MetallibPatch:
         Patch AIR versioning to 2.6
         """
         def patch_line(line: str) -> str:
-            if r'!{i32 2, i32 8, i32 0}' in line:
-                return line.replace("i32 8", "i32 6")
+            if match := re.search(r'!\{i32 2, i32 (\d+), i32 0\}', line):
+            if int(match.group(1)) > 6:  # 如果版本高于 2.6.0
+                return line.replace(match.group(0), "!{i32 2, i32 6, i32 0}")
 
             if r'!{!"Metal", i32 3, i32 2, i32 0}' in line:
                 return line.replace("i32 2", "i32 1")
