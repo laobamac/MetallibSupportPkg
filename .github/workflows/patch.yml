@@ -40,12 +40,11 @@ jobs:
         run: python3 -m pip install -r requirements.txt
 
       - name: Download latest IPSW
-        run: echo "IPSW_FILE=$(aria2c -x 16 https://updates.cdn-apple.com/2025SummerSeed/fullrestores/082-55592/95F6DA16-4116-491E-B332-7165C051E1C5/UniversalMac_26.0_25A5279m_Restore.ipsw)" >> $GITHUB_OUTPUT
+        run: aria2c -x 16 https://updates.cdn-apple.com/2025SummerSeed/fullrestores/082-55592/95F6DA16-4116-491E-B332-7165C051E1C5/UniversalMac_26.0_25A5279m_Restore.ipsw
         id: download
 
       - name: Extract system volume
-        if: steps.download.outputs.IPSW_FILE != ''
-        run: echo "DMG_FILE=$(python3 metallib.py --extract ${{ steps.download.outputs.IPSW_FILE }})" >> $GITHUB_OUTPUT
+        run: echo "DMG_FILE=$(python3 metallib.py --extract UniversalMac_26.0_25A5279m_Restore.ipsw)" >> $GITHUB_OUTPUT
         id: extract
 
       - name: Fetch metal libraries
