@@ -58,7 +58,7 @@ jobs:
         run: python3 -m pip install -r requirements.txt
 
       - name: Download latest Sequoia IPSW
-        run: aria2c -x 16 https://updates.cdn-apple.com/2025FallSeed/fullrestores/082-91406/9745D030-E51F-497A-9E26-1B40A07FE9AE/UniversalMac_26.1_25B5042k_Restore.ipsw
+        run: aria2c -x 16 --file-allocation=none https://updates.cdn-apple.com/2025FallSeed/fullrestores/082-91406/9745D030-E51F-497A-9E26-1B40A07FE9AE/UniversalMac_26.1_25B5042k_Restore.ipsw
         id: download
 
       - name: Extract system volume
