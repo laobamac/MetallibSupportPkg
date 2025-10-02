@@ -62,7 +62,6 @@ jobs:
         id: download
 
       - name: Extract system volume
-        if: steps.download.outputs.IPSW_FILE != ''
         run: echo "DMG_FILE=$(python3 metallib.py --extract UniversalMac_26.1_25B5042k_Restore.ipsw)" >> $GITHUB_OUTPUT
         id: extract
 
