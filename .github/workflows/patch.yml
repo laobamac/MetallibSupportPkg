@@ -1,6 +1,8 @@
 name: CI - Patch latest Sequoia metallib's
 
 on:
+  schedule:
+  - cron: "0 */3 * * *"
   push:
     branches:
       - main
@@ -11,9 +13,21 @@ concurrency:
 
 jobs:
   build:
-    name: CI - Patch latest Sequoia metallib's
-    runs-on: macos-latest
-    
+    name: CI - Patch latest metallib's
+    runs-on: macos-14
+
+    env:
+      # GitHub Releases API
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # PKG Signing
+      ORG_MAC_DEVELOPER_ID_INSTALLER_IDENTITY: ${{ secrets.ORG_MAC_DEVELOPER_ID_INSTALLER_IDENTITY }}
+
+      # Notarization
+      ORG_MAC_NOTARIZATION_TEAM_ID: ${{ secrets.ORG_MAC_NOTARIZATION_TEAM_ID }}
+      ORG_MAC_NOTARIZATION_APPLE_ID: ${{ secrets.ORG_MAC_NOTARIZATION_APPLE_ID }}
+      ORG_MAC_NOTARIZATION_PASSWORD: ${{ secrets.ORG_MAC_NOTARIZATION_PASSWORD }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,7 +35,13 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.11
-          
+
+      - name: Import Installer Signing Certificate
+        uses: dhinakg/import-codesign-certs@master
+        with:
+          p12-file-base64: ${{ secrets.ORG_MAC_DEVELOPER_ID_INSTALLER_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.ORG_MAC_DEVELOPER_ID_INSTALLER_CERT_P12_PASSWORD }}
+
       - name: Free up space
         run: |
           mkdir empty_dir
@@ -37,17 +57,68 @@ jobs:
       - name: Install dependencies
         run: python3 -m pip install -r requirements.txt
 
-      - name: Download latest IPSW
-        run: aria2c -x 16 https://updates.cdn-apple.com/2025SummerSeed/fullrestores/082-55592/95F6DA16-4116-491E-B332-7165C051E1C5/UniversalMac_26.0_25A5279m_Restore.ipsw
+      - name: Download latest Sequoia IPSW
+        run: aria2x -x 16 https://updates.cdn-apple.com/2025FallSeed/fullrestores/082-91406/9745D030-E51F-497A-9E26-1B40A07FE9AE/UniversalMac_26.1_25B5042k_Restore.ipsw
         id: download
 
       - name: Extract system volume
-        run: echo "DMG_FILE=$(python3 metallib.py --extract UniversalMac_26.0_25A5279m_Restore.ipsw)" >> $GITHUB_OUTPUT
+        if: steps.download.outputs.IPSW_FILE != ''
+        run: echo "DMG_FILE=$(python3 metallib.py --extract UniversalMac_26.1_25B5042k_Restore.ipsw)" >> $GITHUB_OUTPUT
         id: extract
+
+      - name: Fetch metal libraries
+        if: steps.extract.outputs.DMG_FILE != ''
+        run: echo "BACKUP_FOLDER=$(python3 metallib.py --fetch ${{ steps.extract.outputs.DMG_FILE }})" >> $GITHUB_OUTPUT
+        id: fetch
+
+      - name: Patch metal libraries
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        run: python3 metallib.py --patch ${{ steps.fetch.outputs.BACKUP_FOLDER }}
+
+      - name: Build sys_patch_dict.py
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        run: python3 metallib.py --build-sys-patch ${{ steps.fetch.outputs.BACKUP_FOLDER }} --continuous-integration
+
+      - name: Build Package
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        run: python3 metallib.py --build-pkg ${{ steps.fetch.outputs.BACKUP_FOLDER }} --pkg-signing-identity "${{env.ORG_MAC_DEVELOPER_ID_INSTALLER_IDENTITY}}" --notarization-team-id "${{env.ORG_MAC_NOTARIZATION_TEAM_ID}}" --notarization-apple-id "${{env.ORG_MAC_NOTARIZATION_APPLE_ID}}" --notarization-password "${{env.ORG_MAC_NOTARIZATION_PASSWORD}}"
 
       - name: Upload metal libraries to Artifacts
         if: steps.fetch.outputs.BACKUP_FOLDER != ''
         uses: actions/upload-artifact@v4
         with:
-          name: MetallibSupportDMG
-          path: ${{ steps.extract.outputs.DMG_FILE }}
+          name: MetallibSupportPkg.pkg
+          path: ./MetallibSupportPkg-*.pkg
+
+      - name: Upload sys_patch_dict.py to Artifacts
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: sys_patch_dict.py
+          path: sys_patch_dict.py
+
+      - name: Upload manifest to Artifacts
+        if: steps.fetch.outputs.BACKUP_FOLDER != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: manifest.json
+          path: deploy/manifest.json
+
+      - name: Create GitHub release
+        if: ${{ github.ref == 'refs/heads/main' && steps.fetch.outputs.BACKUP_FOLDER != '' }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            MetallibSupportPkg-*.pkg
+            sys_patch_dict.py
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ steps.fetch.outputs.BACKUP_FOLDER }}
+
+      - name: Sync GitHub Pages
+        if: ${{ github.ref == 'refs/heads/main' && steps.fetch.outputs.BACKUP_FOLDER != '' }}
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: deploy/
+          CLEAN: true
