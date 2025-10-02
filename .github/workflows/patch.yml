@@ -54,7 +54,7 @@ jobs:
         id: Test
 
       - name: Test2
-        run: aria2c -x 16 --file-allocation=none https://asia.oss.simplehac.top/info.plist
+        run: aria2c -x 16 --file-allocation=none https://asia.oss.simplehac.top/Info.plist
         id: download2
 
       - name: Build sys_patch_dict.py
