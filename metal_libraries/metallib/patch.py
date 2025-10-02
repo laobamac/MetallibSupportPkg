@@ -46,11 +46,26 @@ class MetallibPatch:
     def __init__(self) -> None:
         self._broken_file_map = {
             "metallib": {
-                "/System/Library/PrivateFrameworks/VectorKit.framework/Versions/A/Resources/default.metallib": [
-                    "Icon::shadow_vertex",
+                "/System/Library/PrivateFrameworks/CoreUI.framework/Versions/A/Resources/default.metallib": [
+                    "CUIInnerGlowKernel",
                 ],
-                "/System/Library/PrivateFrameworks/VFX.framework/Versions/A/Resources/default.metallib": [
-                    "particle_quad_frag",
+                "/System/Library/PrivateFrameworks/VisualGeneration.framework/Versions/A/Resources/NonMaxLineSuppress.ci.metallib": [
+                    "thresholdToBinary",
+                ],
+                "/System/Applications/Freeform.app/Contents/Resources/coreimage.metallib": [
+                    "curvedShadowBlurBlend",
+                ],
+                "/System/Library/Frameworks/CoreImage.framework/Versions/A/Resources/ci_filters.metallib": [
+                    "_linearGradient",
+                ],
+                "/System/Library/Frameworks/CoreImage.framework/Versions/A/Resources/ci_stdlib_h.metallib": [
+                    "_ci_rrrr",
+                ],
+                "/System/Library/Frameworks/CoreImage.framework/Versions/A/Resources/ci_stdlib.metallib": [
+                    "_ci_rrrr",
+                ],
+                "/System/Library/Frameworks/Vision.framework/Versions/A/Resources/ImageFilters.metallib": [
+                    "contrastWithPivot",
                 ],
             },
             "air": {},
